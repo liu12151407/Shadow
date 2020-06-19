@@ -66,7 +66,7 @@ internal class DynamicPluginLoader(hostContext: Context, uuid: String) {
                     CORE_LOADER_FACTORY_IMPL_NAME
             )
             mPluginLoader = coreLoaderFactory.build(hostContext)
-            DelegateProviderHolder.setDelegateProvider(mPluginLoader)
+            DelegateProviderHolder.setDelegateProvider(mPluginLoader.delegateProviderKey, mPluginLoader)
             ContentProviderDelegateProviderHolder.setContentProviderDelegateProvider(mPluginLoader)
             mPluginLoader.onCreate()
         } catch (e: Exception) {
@@ -184,6 +184,13 @@ internal class DynamicPluginLoader(hostContext: Context, uuid: String) {
         }
     }
 
+    @Synchronized
+    fun startActivityInPluginProcess(intent: Intent) {
+        mUiHandler.post {
+            mContext.startActivity(intent)
+        }
+    }
+
     private class ServiceConnectionWrapper(private val mConnection: BinderPluginServiceConnection) : ServiceConnection {
 
         override fun onServiceDisconnected(name: ComponentName) {
@@ -214,8 +221,8 @@ internal class DynamicPluginLoader(hostContext: Context, uuid: String) {
     fun <T> ClassLoader.getInterface(clazz: Class<T>, className: String): T {
         try {
             val interfaceImplementClass = loadClass(className)
-            val interfaceImplement = interfaceImplementClass.newInstance()
-            return clazz.cast(interfaceImplement)
+            val interfaceImplement = interfaceImplementClass.newInstance()!!
+            return clazz.cast(interfaceImplement)!!
         } catch (e: ClassNotFoundException) {
             throw Exception(e)
         } catch (e: InstantiationException) {
