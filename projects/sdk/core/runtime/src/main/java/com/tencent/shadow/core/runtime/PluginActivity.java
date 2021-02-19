@@ -36,8 +36,7 @@ public abstract class PluginActivity extends GeneratedPluginActivity {
             return (PluginActivity) o;
         } else {
             //在遇到IllegalIntent时hostActivityDelegate==null。需要返回一个空的Activity避免Crash。
-            return new ShadowActivity() {
-            };
+            return new ShadowActivity();
         }
     }
 
@@ -91,4 +90,11 @@ public abstract class PluginActivity extends GeneratedPluginActivity {
     public void setCallingActivity(ComponentName callingActivity) {
         mCallingActivity = callingActivity;
     }
+
+    @Override
+    public void setTheme(int resid) {
+        super.setTheme(resid);
+        hostActivityDelegator.setTheme(resid);
+    }
+
 }
