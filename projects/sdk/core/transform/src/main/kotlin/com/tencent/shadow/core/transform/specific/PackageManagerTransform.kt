@@ -38,7 +38,7 @@ class PackageManagerTransform : SpecificTransform() {
         targetMethods.forEach { targetMethod ->
             newStep(object : TransformStep {
                 override fun filter(allInputClass: Set<CtClass>) =
-                        allCanRecompileAppClass(
+                        filterRefClasses(
                                 allInputClass,
                                 listOf(AndroidPackageManagerClassname)
                         ).filter { matchMethodCallInClass(targetMethod, it) }.toSet()
@@ -102,7 +102,9 @@ class PackageManagerTransform : SpecificTransform() {
                         "getApplicationInfo",
                         "getActivityInfo",
                         "getPackageInfo",
-                        "resolveContentProvider"
+                        "resolveContentProvider",
+                        "queryContentProviders",
+                        "resolveActivity",
                 )
         )
     }
