@@ -12,11 +12,17 @@ allprojects {
     ext.MIN_SDK_VERSION = 14
     ext.TARGET_SDK_VERSION = 28
     ext.VERSION_CODE = 1
-    ext.VERSION_NAME = "2.0.12"
+
+    if ("${System.env.CI}".equalsIgnoreCase("true")) {
+        ext.VERSION_NAME = System.getenv("GITHUB_REF_SLUG")
+    } else {
+        ext.VERSION_NAME = "local"
+    }
+
     if ("${System.env.PUBLISH_RELEASE}".equalsIgnoreCase("true")) {
         ext.VERSION_SUFFIX = ""
-    } else if ("${System.env.ORANGE}".equalsIgnoreCase("true")) {
-        ext.VERSION_SUFFIX = "-${System.env.ORANGE_COMMIT_SHORT}-SNAPSHOT"
+    } else if ("${System.env.CI}".equalsIgnoreCase("true")) {
+        ext.VERSION_SUFFIX = "-${System.env.GITHUB_SHA_SHORT}-SNAPSHOT"
     } else {
         ext.VERSION_SUFFIX = "-${gitShortRev()}-SNAPSHOT"
     }
@@ -24,8 +30,12 @@ allprojects {
     ext.TEST_HOST_APP_APPLICATION_ID = 'com.tencent.shadow.test.hostapp'
     ext.SAMPLE_HOST_APP_APPLICATION_ID = 'com.tencent.shadow.sample.host'
     repositories {
-        google()
-        jcenter()
+        if (!System.getenv().containsKey("DISABLE_TENCENT_MAVEN_MIRROR")) {
+            maven { url 'https://mirrors.tencent.com/nexus/repository/maven-public/' }
+        } else {
+            google()
+            jcenter()
+        }
     }
     //环境检查
     envCheck()

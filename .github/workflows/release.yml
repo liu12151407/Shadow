@@ -1,0 +1,45 @@
+name: Publish release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    env:
+      DISABLE_TENCENT_MAVEN_MIRROR: true
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: buildSdk
+        run: ./gradlew wrapper; ./gradlew buildSdk
+      - name: lintSdk
+        run: ./gradlew wrapper; ./gradlew lintSdk
+      - name: build sample/source
+        run: ./gradlew wrapper; ./gradlew build
+      - name: unit test
+        run: ./gradlew wrapper; ./gradlew jvmTestSdk -S
+      - name: run androidTestSdk on API 28 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: default
+          arch: x86_64
+          profile: pixel_xl
+          script: ./gradlew wrapper; ./gradlew androidTestSdk
+  publish:
+    needs: build-and-test
+    runs-on: macos-latest
+    env:
+      DISABLE_TENCENT_MAVEN_MIRROR: true
+      PUBLISH_RELEASE: true
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: publish
+        run: ./gradlew wrapper; ./gradlew publish
